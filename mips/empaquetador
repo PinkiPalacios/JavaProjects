@@ -1,0 +1,72 @@
+.data
+
+ask: .asciiz "Inserte numero: "
+vec: .byte 0,0,0,0,0
+spacio: .asciiz " "
+
+.text
+.globl main
+
+main:
+	li $t0,0
+	li $t2,4
+	li $t9,0
+	li $s0,0
+	li $s1,0
+##############################	
+	li $v0,4
+	la $a0,ask
+	syscall
+	
+	li $v0,5
+	syscall
+	
+	move $s0,$v0
+	move $t0,$v0
+	
+	loopcont: #contador de digitos	
+	div 	$t0,$t0,10
+	add  	$s2,$s2,1
+	bnez  	$t0,loopcont
+#############################
+
+	bgez  $s0,loop
+	li $t9,-1
+	mul $s0,$s0,$t9
+
+
+loop:	div $s0,$s0,10
+	mfhi $t3
+	sb $t3,vec($t2)
+	subi $t2,$t2,1
+	bgez $t2,loop
+	
+	li $t2,0
+############################## mostrar vector	
+imprimir2:
+	lb $a0,vec($t2)
+	li $v0,1
+	syscall
+	
+	addi $t2,$t2,1
+	blt $t2,5,imprimir2
+################################	
+
+	li $t2,0
+loop2:  lb $t3,vec($t2)
+	or $s1,$s1,$t3
+	sll $s1,$s1,4
+	addi $t2,$t2,1
+	ble $t2,4,loop2
+	bgez $t9,c
+	
+####################### asignar signo
+d:	ori $t4,$s1,0x000d
+	b exit
+
+c:	ori $t4,$s1,0x000c
+
+										
+exit:										
+li $v0,10
+syscall		

@@ -1,0 +1,57 @@
+       .data
+saludo:.asciiz "Introduzca cuatro digitos que se codificaran unariamente:"  
+rpta:  .asciiz "El resultado es: "  
+cadena: .asciiz "____  "
+resultado: .asciiz "                                          "
+       .text
+       .globl main
+main:  li $v0,4
+       la $a0,saludo
+       syscall
+       la $a0,cadena
+       li $a1,6
+       li $v0,8
+       syscall
+
+       li $t0,0    # registro destino de las secuancias unarias
+       li $t2,0    # cada byte de la cadena
+       li $t3,0    # contador de cero a tres
+loop:  lb $t2,cadena($t3)
+       andi $t2,$t2,0x0f
+       sll $t0,$t0,1
+loop2: ori  $t0,$t0,1
+       sll $t0,$t0,1
+       addi $t2,$t2,-1
+       bgtz $t2,loop2
+       addi $t3,$t3,1
+       ble $t3,3,loop       
+       
+       li $v0,4
+       la $a0,rpta
+       syscall
+       li $v0,1
+       move $a0,$t0
+       syscall
+       li $t4,32
+loop3: div $t0,$t0,2
+       mfhi $t5
+       ori $t5,$t5,0x30
+       sb $t5,resultado($t4)
+       addi $t4,$t4,-1
+       bnez $t0,loop3
+       la $a0,resultado
+       li $v0,4
+       syscall
+              
+                   
+                         
+       li $v0,10
+       syscall
+       
+               
+
+
+
+
+
+

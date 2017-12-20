@@ -1,0 +1,23 @@
+
+        .data
+saludo1: .asciiz "La suma del vector es "
+cadena: .ascii "abckjfgigcqweqdwq"
+
+        .text
+main: 
+
+      li  $t0,0  # acumulador de la suma
+      li  $t1,0  # registro "indice" ... vale 0,,1,...9
+loop: lbu   $t2,cadena($t1)  # no funciona bien con lb normal
+      add $t0,$t0,$t2
+      addi $t1,$t1,1  
+      ble $t1,9,loop
+      li $v0,1                 
+      la $a0,saludo1
+      syscall
+      li $v0,1
+      move $a0,$t0
+      syscall
+      li $v0,10
+      syscall
+      

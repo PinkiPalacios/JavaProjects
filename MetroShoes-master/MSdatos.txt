@@ -1,0 +1,2 @@
+tipo uno 1
+tipo dos 4

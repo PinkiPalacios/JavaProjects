@@ -1,0 +1,53 @@
+.data
+msj: .asciiz "el vector ordenado decreciente es:"
+vec: .byte 8,5,9,3,2,18
+salto: .asciiz "\n"
+spacio: .asciiz " "
+
+.text
+.globl main
+main:
+
+li $v0,4
+la $a0,msj
+syscall
+la $a0,salto
+li $v0,4
+syscall
+li $t0,0 #este registro corresponde a la i
+li $t1,1 #este registro corresponde a la j
+
+ordeno:
+lb $t2,vec($t0)#valor posicion i
+lb $t3,vec($t1)#valor posicion j
+blt $t3,$t2,incrementoj #si $t3 es menor a $t2 entonces ve a incremento j 
+sb $t3,vec($t0)
+sb $t2,vec($t1)
+
+incrementoj:
+bgt $t1,4,incrementoi#si $t1 es mayor a 4 entonces ve a incremento I
+addi $t1,$t1,1
+b ordeno
+
+incrementoi:
+bgt $t0,3,finalizar#si $t0 es mayor a 3 entonces ve a finalizar
+addi $t0,$t0,1
+addi $t1,$t0,1
+b ordeno
+
+finalizar:
+li $t0,0
+imprimir:
+lb $a0,vec($t0)
+li $v0,1
+
+syscall
+la $a0,spacio # espacio en la linea
+li $v0,4
+syscall
+
+addi $t0,$t0,1
+blt $t0,6,imprimir
+
+li $v0,10
+syscall

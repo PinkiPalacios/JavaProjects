@@ -1,0 +1,330 @@
+
+.data
+
+matriz: .asciiz "|                     |\n|                     |\n|                     |\n|                     |\n|                     |\n|                     |\n|                     |\n|                     |\n|                     |\n|                     |\n| = = = = = = = = = = |\n"
+
+opcion: .asciiz "\n Elegir movimiento: (1)disparar, (3)Izquierda, (4)Derecha, (0)Salir \n "
+mensaje: .asciiz "no puede moverse en esa direccion "
+mensaje2: .asciiz "La partida ha finaliado.\n Su score es de: "
+mensaje3: .asciiz " Bloques Destruidos en "
+mensaje4: .asciiz " Movimientos. Para un score TOTAL de: "
+mensaje5: .asciiz " \n\n\n Introduzca (9) si desea jugar de nuevo. De lo contrario, cualquier tecla para finalizar.\n"
+.text
+
+iniciar:
+
+	
+        li $t3,0	#contador de bloques destruidos score
+        li $t4,0	#contador de movimientos score
+        li $t5,194	#simbolo nave
+	li $t6,32	#simbolo espacio
+	li $t7,124	#simbolo pared
+	li $a1,226	#posicion inicial de la nave
+ 	li $t9,48	#simbolo 0
+	
+	li $a3, 0	#aqui empieza a limpiar la matriz, pone puros espacios
+	li $t1, 23
+	lb $t0, matriz($t1)			#se guarda en registro de memoria, el byte que representa el backslash n. se usara luego para comparar
+	li $t1, 240
+limpiarMatriz:
+	lb $t2, matriz($a3)
+	bne $t7,$t2,hacerLimpiado1		#si consigue cualquier cosa distinta a pared, ...
+seguirLimpiado:
+	subi $t1,$t1,1
+	addi $a3,$a3, 1
+        blez $t1,continuar2
+	b limpiarMatriz
+hacerLimpiado1:
+	bne $t0,$t2,hacerLimpiado2		# ... y cualquier cosa distinta al backslash n tambien, entonces, ...
+	b seguirLimpiado
+hacerLimpiado2:
+	sb $t6, matriz($a3)			#... escribe un espacio en esa posicion. fin
+	b seguirLimpiado	#aqui termina de limpiar la matriz
+	
+continuar2:	
+	
+	li $t1,8	#auxiliar de bloques a colocar
+	li $a3,4	#auxiliar de vector de bloques
+ponerBloques1:			#aqui empieza a colocar los vectores de bloques
+	sb $t9,matriz($a3)		#empieza poniendo los bloques del primer vector
+	addi $a3,$a3,2
+	subi $t1, $t1, 1
+        blez $t1,siguienteFila1		#salta al segundo vector
+	b ponerBloques1
+siguienteFila1:
+	li $a3,30			#pone las propiedades del vector
+	li $t1,6
+ponerBloques2:				#empieza a poner los bloques del vector 2
+	sb $t9,matriz($a3)
+	addi $a3,$a3,2
+	subi $t1, $t1, 1
+        blez $t1,siguienteFila2		#salta al tercer vector
+	b ponerBloques2
+siguienteFila2:
+	li $a3,56			#pone las propiedades del tercer vector
+	li $t1,4
+ponerBloques3:	
+	sb $t9,matriz($a3)		#empieza a poner los bloques del tercervector
+	addi $a3,$a3,2	
+	subi $t1, $t1, 1
+        blez $t1,continuar1
+	b ponerBloques3			#aqui termina de colocar los vectores de bloques
+continuar1:
+
+
+
+	li $t0,0			#inicializo el contador de turnos para moverse los bloques
+	li $t1,0			#inicializo la direccion de moverse de los bloques
+	
+	sb $t5,matriz($a1)		#pongo la nave en la posicion central abajo
+	
+	la $a0,matriz			#imprimo la matriz
+	li $v0,4
+	syscall
+
+
+esperaJugada: 				#aqui esta el menu
+la $a0,opcion
+li $v0,4				#pide por teclado la opcion, luego compara
+syscall
+li $v0,5
+syscall 
+beq $v0,1,disparar
+beq $v0,3,izquierda			#comparaciones de lo q leyo por teclado
+beq $v0,4,derecha
+beq $v0,0,salir
+b esperaJugada
+	
+izquierda:
+            li $t5,194			#mover la nave a la izquierda
+	    li $t6,32
+	    li $t7,124
+	    sb $t6,matriz($a1)				#borra la nave
+	    sub $a1,$a1,2				#coloca la nueva posicion en el reg de posicion
+	    lb $a2,matriz($a1)				#verifica lo que hay en esa posicion
+	    beq $a2,$t7,nopuedemoverseiz		#si hay pared, salta a la etiqueta y devuelve la nave en esa etiqueta
+	    sb $t5,matriz($a1)				#si no, simplemente escribe la nave en esa posicion
+	    addi $t4,$t4,1	#conteo de movimientos score
+	    la $a0,matriz
+	    li $v0,4					#imprime matriz
+	    syscall
+	    b esperaJugada
+	
+derecha:
+       	    li $t5,194				#identico al movimiento izquierdo, solo q pa la derecha
+	    li $t6,32
+	    li $t7,124
+	    sb $t6,matriz($a1)
+	    addi $a1,$a1,2
+	    lb $a2,matriz($a1)
+	    beq $a2,$t7,nopuedemoversede
+	    sb $t5,matriz($a1)
+	    addi $t4,$t4,1	#conteo de movimientos score
+	    la $a0,matriz
+	    li $v0,4
+	    syscall
+	    b esperaJugada
+	    
+bloquesmover:	    
+	blez $t1,bloquesizq			#en t1 se guarda en un numero 0-1 la direccion de movimiento de los bloques. si es 0, la direccion es izquierda. si es 1, es a la derecha
+bloquesder:
+	li $t7,124	#simbolo pared
+	li $t6,32	#simbolo espacio
+ 	li $t9,48	#simbolo 0
+ 	
+	li $a3, 20
+validarloca: 	
+	lb $t2, matriz($a3)	#validacion especial para que no inicie el movimiento a la derecha, si el vector superior de bloques esta pegado a la pared ya.
+	beq $t9,$t2,continuar6	#especial, salto si ya esta la ultima fila con un 0 (bloque)
+	addi $a3,$a3,24
+	li $a0, 200		#simplemente verifica que en la fila de la derecha, en las 10 posiciones, no haya un 0(bloque). si consigue el 0(bloque), entonces no mueve a la derecha sino a la izquierda
+	bgt $a3,$a0,sigo
+	b validarloca
+sigo:
+ 	
+	li $a3, 215	#aqui empieza el ciclo de mover bloques a la derecha, si la validacion anterior no hizo su salto. es decir, no hay 0(bloque) pegado a la pared derecha
+empezarDer1:
+	lb $t2, matriz($a3)
+	beq $t9,$t2,hacerDer1		#recorre posicion tras posicion, de derecha a izquierda. si consigue un bloque...
+seguirDer1:
+	subi $a3,$a3, 1
+        beq $a3,0,continuar5
+	b empezarDer1
+hacerDer1:
+	sb $t6, matriz($a3)		#... lo mueve a la derecha. primero borra el de esa posicion y luego introduce el siguiente.
+	addi $a3,$a3,2
+	lb $t2, matriz($a3)
+	bge $t2,$t7, abortarDer
+	sb $t9, matriz($a3)
+	b seguirDer1	
+abortarDer:
+	subi $a3,$a3,2			#si consigue pared, aborta el procedimiento y devuelve lo q hizo
+	sb $t9, matriz($a3)
+	li $t1,0
+	b bloquesizq	
+continuar6:
+	li $t1,0
+	b bloquesizq		
+continuar5:	
+	la $a0,matriz
+	li $v0,4
+	syscall
+	b sigoConteo1		#aqui termina el ciclo de mover bloques der
+
+bloquesizq:
+	li $t7,124	#simbolo pared
+	li $t6,32	#simbolo espacio
+ 	li $t9,48	#simbolo 0
+	li $a3, 0	#aqui empieza el ciclo de mover bloques izq
+empezarIzq1:
+	lb $t2, matriz($a3)
+	beq $t9,$t2,hacerIzq1			#aqui empieza el ciclo de mover a la izquierda. es igual que el de mover a la derecha, solo que
+seguirIzq1:					#no necesita validar previamente lo de la pared, porque recorre de izquierda a derecha la matriz, 
+	addi $a3,$a3, 1				#y los bloques son triangulares asi que no hay royo como cuando la recorres de derecha a izquierda.
+        beq $a3,215,continuar4
+	b empezarIzq1				#entiendase que se prefiere recorrer la matriz la direccion que puedas lanzar patras el bloque que consigas OJO.
+hacerIzq1:
+	sb $t6, matriz($a3)			#dependiendo de hacia donde sea que quieras mover los bloques
+	subi $a3,$a3,2
+	lb $t2, matriz($a3)
+	bge $t2,$t7, abortarIzq
+	sb $t9, matriz($a3)
+	b seguirIzq1	
+abortarIzq:
+	addi $a3,$a3,2
+	sb $t9, matriz($a3)
+	li $t1,1
+	b bloquesder		
+continuar4:	
+	la $a0,matriz
+	li $v0,4
+	syscall
+	b sigoConteo1		#aqui termina el ciclo de mover bloques izq
+
+
+	    	    
+bajar:
+	li $t6,32	#simbolo espacio
+ 	li $t9,48	#simbolo 0
+	li $a3, 215	#aqui empieza el ciclo de bajar matriz
+empezarCiclo:
+	lb $t2, matriz($a3)
+	beq $t9,$t2,hacerBajado1
+seguirCiclo:
+	subi $a3,$a3, 1			#es un ciclo que recorre espacio por espacio de la matriz, y si consigue un bloque simplemente lo mueve pabajo
+        blez $a3,continuar3
+	b empezarCiclo
+hacerBajado1:
+	sb $t6, matriz($a3)
+	addi $a3,$a3,24
+	bge $a3,216, salir			#validacion, si el bloque llega al final de la matriz, perdiste el juego y sale
+	sb $t9, matriz($a3)
+	subi $a3,$a3,24
+	b seguirCiclo	#aqui termina el ciclo de bajar matriz
+continuar3:	
+	la $a0,matriz
+	li $v0,4
+	syscall
+	b reiniciarConteo1		#como solo es llamada por el ciclo de conteo de movimientos, se regresa a ese lugar al terminar de bajar
+
+nopuedemoverseiz:
+		la $a0,mensaje
+		li $v0,4
+		syscall
+		addi $a1,$a1,2			#validaciones de derecha e izquierda, solo vuelve a colocar la nave donde la habia borrado antes
+	        sb $t5,matriz($a1)
+		b esperaJugada
+
+nopuedemoversede:
+		la $a0,mensaje			#y tira el mensaje de error
+		li $v0,4
+		syscall
+		sub $a1,$a1,2
+	        sb $t5,matriz($a1)
+		b esperaJugada
+
+disparar:
+move $s1,$a1
+ li $s0,94			#simbolo de la bala
+ li $s2,88			#simbolo de la explosion
+ li $t6,32			#simbolo del espacio
+ li $t9,48			#simbolo del 0 bloque           	#hace el disparo en un ciclo
+        lop:
+        
+
+	li $a0,200	#delay
+        li $v0,32      
+        syscall			
+									#cada vez q entra al ciclo, pasa por el conteo de movimientos que indica si se mueven o bajan los bloques
+        sub $s1,$s1,24
+        lb $t8, matriz($s1)
+	beq $t8,$t9,comerBloque		#si la bala se consigue un bloque, pasa a la etiqueta de comerse el bloque
+        bltz $s1,esperaJugada
+        sb $s0,matriz($s1)
+        la $a0,matriz			#si no, sigue subiendo la bala como si nada
+        li $v0,4
+        syscall
+         sb $t6,matriz($s1)
+         
+       	b chequearConteo1
+terminaConteo1:	
+        b lop
+        
+comerBloque:
+
+	addi $t3,$t3,1			#elimina el bloque de esa posicion, y graba en ella la bala
+        sb $s2,matriz($s1)
+        la $a0,matriz
+        li $v0,4       
+        syscall				#luego de imprimir la bala en la posicion final, la borra y deja el espacio (la bala nunca se queda en la matriz)
+         sb $t6,matriz($s1)    
+	beq $t3,18,salir
+        b esperaJugada
+
+salir:
+
+        la $a0,mensaje2
+        li $v0,4       
+        syscall					#mensajes de finalizar, imprime los scores, y chao
+        move $a0,$t3
+        li $v0,1       
+        syscall
+        la $a0,mensaje3
+        li $v0,4       
+        syscall
+        move $a0,$t4
+        li $v0,1       
+        syscall        
+        la $a0,mensaje4
+        li $v0,4       
+        syscall
+        mul $t3,$t3,50	#contabilizar score
+        mul $t4,$t4,10
+        sub $t3,$t3,$t4
+        move $a0,$t3
+        li $v0,1       
+        syscall
+        la $a0,mensaje5	#pregunta si desea jugar de nuevo
+        li $v0,4       
+        syscall
+	li $v0,5	#lee si desea jugar de nuevo
+	syscall 
+	beq $v0,9,iniciar
+	
+
+li  $v0,10
+syscall
+
+
+chequearConteo1:
+	addi $t0,$t0,1				#aqui esta el contador de jugadas para mover los bloques o bajarlos
+	beq $t0,3,bloquesmover
+	beq $t0,6,bloquesmover
+	beq $t0,9,bloquesmover	
+	beq $t0,12,bloquesmover			#cuando el contador llega de 3 en 3, mueve izquierda o derecha segun corresponda
+	beq $t0,15,bajar			#cuando el contador llega a 15, baja los bloques. Estos valores se pueden varias para cambiar la dificultad del juego
+	b sigoConteo1
+reiniciarConteo1:
+	li $t0,0
+sigoConteo1:
+	b terminaConteo1

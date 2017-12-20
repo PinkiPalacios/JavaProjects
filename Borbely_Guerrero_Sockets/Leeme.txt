@@ -1,0 +1,88 @@
+LEEME.txt
+
+
+Sección 2
+
+
+Prof. Miguel Torrealba
+
+
+mtorrealba@usb.ve
+torrealba@ldc.usb.ve
+
+
+Integrantes
+
+
+Diego Guerrero 12-10166
+Tomas Borbely 12-10489
+
+
+
+
+ ¿Qué archivos lo componen y qué tiene cada archivo?
+
+
+Directorio 1 CLIENTE_CAJEROS:
+Cliente.c: Contiene el codigo a ejecutarse en el cliente.
+MakeFile: Es el archivo que crea los ejecutables de Cliente.c
+
+
+Directorio 2 SERVIDOR_CAJEROS:
+Funciones_servidor.c: Contiene las funciones necesarias para que servidor.c se
+se ejecute correctamente.
+Funciones_servidor.h: Contiene los archivos de cabecera y la descripcion de las
+funciones en funciones_servidor.c
+Servidor.c: Contiene el codigo para ejecutar el servidor.
+MakeFile: Es el archivo que crea los ejecutables de Servidor.c
+
+
+
+
+¿Qué hace el programa?
+
+
+El programa simula una red de cajeros automático que funciona con el método de 
+cliente servidor con sockets. El servidor recibe de los clientes las 
+solicitudes de depósito o retiro y guarda las operaciones válidas en archivos 
+separados de depósito y retiro, luego envía al cliente el resultado de la 
+información. El cliente se encarga de generar la solicitud y mostrar por 
+pantalla el resultado.
+
+
+
+
+¿Cómo se ejecuta?
+
+
+Con dos terminales se debe entrar a cada carpeta por separado y dentro de cada 
+una se debe hacer el make, una vez hecho esto, se debe ejecutar cada programa 
+por separado de la siguiente forma:
+
+Primero se ejecuta el servidor con el siguiente comando:
+./bsb_svr-l <puerto_bsb_svr> -i <bitácora_depósito> -o <bitácora_retiro>
+
+
+Una vez que iniciamos el servidor, desde el terminal que abrimos en la carpeta 
+del cliente colocamos el siguiente comando, viendo las diferentes opciones 
+de usuario, de la operación a realizar, etc.
+./bsb_cli -d <nombre_módulo_atención> -p <puerto_bsb_svr> -c <op> 
+-i <codigo_usuario>
+
+Luego si la operación es un retiro se introduce el monto, si es un depósito se 
+introduce el código del usuario al que se le hará el depósito y luego el monto 
+del mismo.
+
+
+
+
+¿Qué condiciones particulares tiene?
+
+La entrada -i <codigo_usuario> puede ser de 0 a 19.
+El monto de retiro no puede ser menor que 0 ni mayor que 3000.
+El monto de depósito no puede ser menor que 0.
+El saldo disponible para todos los usuarios es de 8999Bsf, así se puede probar
+la condición de que el usuario no tenga dinero suficiente si trata de hacer 3
+retiros del monto maximo.
+
+
